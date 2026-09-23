@@ -1,0 +1,47 @@
+[
+[
+0.4,
+8.1,
+"Hydrogen could power Nordic buses, trucks, ships and industry. Yet one question keeps coming back: where do we store it?"
+],
+[
+8.7,
+22.7,
+"Hydrogen is the lightest gas there is. Even at five hundred bar, one kilogram needs about thirty litres of costly tank. So local systems add storage at every site, and pay for hydrogen that sits idle."
+],
+[
+23.3,
+32.8,
+"But storage is a symptom, not the cause. Production follows the wind. Demand follows buses, trucks and ships. Tanks fill the gap between them."
+],
+[
+33.4,
+44.3,
+"The real question is: how can digital twins help local hydrogen systems produce, move and use hydrogen with minimum storage and maximum business value?"
+],
+[
+44.9,
+55.7,
+"Picture a coastal region in northern Finland. Two electrolysers, a bus depot, a truck station, an industrial plant and a port, linked by seven tube trailers."
+],
+[
+56.3,
+69.1,
+"The digital twin mirrors all of it: weather, prices, demand, every trailer and every tank. Each hour it plans two days ahead: when to produce, what to move, and where to keep a small reserve on wheels."
+],
+[
+69.7,
+86.5,
+"Now we stress one winter month: a cold snap at minus twenty-eight, three calm, expensive days, a snowstorm, and an electrolyser trip. With the same small tanks, a fixed timetable leaves users without fuel for sixty-two hours. The twin supplies them all."
+],
+[
+87.1,
+99.0,
+"Compared with a storage-first design, it needs ninety-two per cent less stationary storage, holds two thirds less hydrogen, and earns about seventy thousand euros more each month."
+],
+[
+99.6,
+107.9,
+"Hydrogen storage is not only a tank problem. It is a logistics intelligence problem. Explore the live twin for yourself."
+]
+]

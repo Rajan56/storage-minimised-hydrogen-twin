@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Storage-minimised hydrogen twin: animation</title>
+<style>html,body{margin:0;background:#0b1220;overflow:hidden}svg{display:block}</style></head>
+<body>
+<svg id="s" width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg"></svg>
+<script>
+// Every frame is drawn by render(t) from the animation time t alone. Numbers come from sim.js (data.json).
+const LINES = /*__LINES__*/;
+const D = /*__DATA__*/;
+const DUR = 108.4;
+const F = "Carlito, 'DejaVu Sans', sans-serif";
+const C = { bg: '#0b1220', panel: '#121c2a', panel2: '#172336', line: '#22324a', text: '#eef3f8', muted: '#8c9aab', cyan: '#3ad0f0', amber: '#ffb84d', green: '#46d69b', red: '#ff6b5b', violet: '#b18cff', steel: '#c9d3de', sea: '#10263d', land: '#122033', h2: '#7fe3ff' };
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const P = (t, a, b) => clamp((t - a) / (b - a));
+const EO = x => 1 - Math.pow(1 - clamp(x), 3);
+const lerp = (a, b, x) => a + (b - a) * x;
+const W = (t, a, b, f = 0.5) => P(t, a, a + f) * (1 - P(t, b - f, b));
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+function T(x, y, s, o = {}) {
+  const op = o.op == null ? 1 : o.op; if (op <= 0.001) return '';
+  const lines = String(s).split('\n'), lh = o.lh || (o.size || 28) * 1.22;
+  return `<text x="${x}" y="${y}" font-family="${o.font || F}" font-size="${o.size || 28}" fill="${o.color || C.text}" font-weight="${o.weight || 400}" text-anchor="${o.a || 'start'}" opacity="${op}"${o.ls ? ` letter-spacing="${o.ls}"` : ''}${o.style ? ` font-style="${o.style}"` : ''}>` + lines.map((l, i) => `<tspan x="${x}" dy="${i ? lh : 0}">${esc(l)}</tspan>`).join('') + '</text>';
+}
+const R = (x, y, w, h, c, o = {}) => `<rect x="${x}" y="${y}" width="${Math.max(0, w)}" height="${Math.max(0, h)}" rx="${o.rx || 0}" fill="${c}" opacity="${o.op == null ? 1 : o.op}"${o.stroke ? ` stroke="${o.stroke}" stroke-width="${o.sw || 2}"` : ''}${o.dash ? ` stroke-dasharray="${o.dash}"` : ''}/>`;
+const L = (x1, y1, x2, y2, c, w = 2, o = {}) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${w}" opacity="${o.op == null ? 1 : o.op}"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''} stroke-linecap="round"/>`;
+const G = (op, inner, tr = '') => op <= 0.001 ? '' : `<g opacity="${op}"${tr ? ` transform="${tr}"` : ''}>${inner}</g>`;
+const path = (pts, c, w = 3, o = {}) => pts.length < 2 ? '' : `<path d="${pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ')}" fill="${o.fill || 'none'}" stroke="${c}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round" opacity="${o.op == null ? 1 : o.op}"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''}/>`;
+function arrow(x1, y1, x2, y2, c, w = 4, o = {}) { const a = Math.atan2(y2 - y1, x2 - x1), h = 15; return `<g opacity="${o.op == null ? 1 : o.op}">${L(x1, y1, x2 - Math.cos(a) * 6, y2 - Math.sin(a) * 6, c, w, { dash: o.dash })}<path d="M${x2} ${y2} L${x2 - h * Math.cos(a - 0.45)} ${y2 - h * Math.sin(a - 0.45)} L${x2 - h * Math.cos(a + 0.45)} ${y2 - h * Math.sin(a + 0.45)} Z" fill="${c}"/></g>`; }
+const fmt = (x, d = 0) => x.toLocaleString('en-GB', { minimumFractionDigits: d, maximumFractionDigits: d });
+
+// ------------------------------------------------------------------ icons (drawn around a centre point)
+const ICON = {
+  bus: (x, y, s, c) => `<g transform="translate(${x} ${y}) scale(${s})" fill="none" stroke="${c}" stroke-width="${2.4 / s}"><rect x="-26" y="-16" width="52" height="26" rx="5"/><path d="M-20 -9 H20 M-26 2 H26"/><circle cx="-14" cy="12" r="4.5" fill="${c}"/><circle cx="14" cy="12" r="4.5" fill="${c}"/></g>`,
+  truck: (x, y, s, c) => `<g transform="translate(${x} ${y}) scale(${s})" fill="none" stroke="${c}" stroke-width="${2.4 / s}"><rect x="-28" y="-15" width="34" height="24" rx="3"/><path d="M6 -8 H18 L27 2 V9 H6 Z"/><circle cx="-18" cy="12" r="4.5" fill="${c}"/><circle cx="18" cy="12" r="4.5" fill="${c}"/></g>`,
+  ship: (x, y, s, c) => `<g transform="translate(${x} ${y}) scale(${s})" fill="none" stroke="${c}" stroke-width="${2.4 / s}"><path d="M-30 2 H30 L22 14 H-22 Z"/><path d="M-12 2 V-12 H10 V2 M-4 -12 V-20"/><path d="M-32 20 Q-24 16 -16 20 T0 20 T16 20 T32 20"/></g>`,
+  factory: (x, y, s, c) => `<g transform="translate(${x} ${y}) scale(${s})" fill="none" stroke="${c}" stroke-width="${2.4 / s}"><path d="M-28 14 V-4 L-14 -12 V-4 L0 -12 V-4 L14 -12 V14 Z"/><path d="M18 14 V-22 H26 V14"/><path d="M-32 14 H32"/></g>`,
+  elec: (x, y, s, c) => `<g transform="translate(${x} ${y}) scale(${s})" fill="none" stroke="${c}" stroke-width="${2.4 / s}"><rect x="-22" y="-14" width="34" height="28" rx="4"/><text x="-5" y="6" font-family="${F}" font-size="15" font-weight="700" fill="${c}" stroke="none" text-anchor="middle">H₂</text><path d="M26 16 V-10 M26 -10 L26 -26 M26 -10 L40 -4 M26 -10 L12 -4" stroke-width="${2 / s}"/></g>`,
+  tank: (x, y, s, c, fill = 0) => `<g transform="translate(${x} ${y}) scale(${s})"><rect x="-16" y="-28" width="32" height="56" rx="14" fill="none" stroke="${c}" stroke-width="${2.4 / s}"/><rect x="-12" y="${24 - 48 * fill}" width="24" height="${48 * fill}" rx="8" fill="${c}" opacity=".5"/></g>`,
+  trailer: (x, y, s, c, fill = 1, ang = 0) => `<g transform="translate(${x} ${y}) rotate(${ang}) scale(${s})"><rect x="-22" y="-8" width="44" height="16" rx="6" fill="${C.bg}" stroke="${c}" stroke-width="${2 / s}"/><rect x="-19" y="-5" width="${38 * fill}" height="10" rx="4" fill="${c}" opacity=".85"/></g>`
+};
+const siteIcon = { P1: 'elec', P2: 'elec', D1: 'bus', D2: 'truck', D3: 'factory', D4: 'ship' };
+
+// ------------------------------------------------------------------ captions
+function sentences(s) { return s.match(/[^.?!]+[.?!]+(\s|$)/g) || [s]; }
+function captionAt(t) {
+  for (const [a, b, text] of LINES) {
+    if (t < a - 0.05 || t > b + 0.25) continue;
+    const ss = sentences(text), tot = ss.reduce((q, x) => q + x.length, 0); let acc = 0;
+    for (const s of ss) { const s0 = a + (b - a) * acc / tot, s1 = a + (b - a) * (acc + s.length) / tot; if (t >= s0 && t < s1 + (s === ss[ss.length - 1] ? 0.25 : 0)) return { text: s.trim(), op: W(t, s0 - 0.1, s1 + 0.2, 0.18) }; acc += s.length; }
+  }
+  return null;
+}
+function phraseStart(li, str) { const [a, b, text] = LINES[li], k = text.indexOf(str); return a + (b - a) * Math.max(0, k) / text.length; }
+function wrap(s, n) { const w = s.split(' '), out = []; let cur = ''; for (const x of w) { if ((cur + ' ' + x).trim().length > n) { out.push(cur.trim()); cur = x; } else cur += ' ' + x; } out.push(cur.trim()); return out.join('\n'); }
+const SW = LINES.map(l => [l[0] - 0.3, l[1] + 0.3]); // scene windows follow the narration
+const S0 = i => SW[i][0], S1 = i => SW[i][1];
+
+const CH = [['The problem', 0, 1], ['Reframing', 2, 3], ['The system', 4, 4], ['The twin', 5, 5], ['Stress test', 6, 6], ['Results', 7, 7]];
+function chrome(t) {
+  let s = T(80, 72, 'STORAGE-MINIMISED HYDROGEN TWIN', { size: 22, color: C.muted, weight: 700, ls: 3, op: P(t, 0.2, 1) });
+  const cap = captionAt(t);
+  if (cap) { const txt = wrap(cap.text, 80), n = txt.split('\n').length; s += G(cap.op, R(0, 948 - (n - 1) * 44, 1920, 92 + (n - 1) * 44, '#070c14', { op: .82 }) + T(960, 1004 - (n - 1) * 44, txt, { size: 38, a: 'middle', lh: 44 })); }
+  const op = P(t, 1, 2) * (1 - P(t, S0(8), S0(8) + 0.8));
+  if (op > 0) {
+    let g = '', x = 1840;
+    for (let i = CH.length - 1; i >= 0; i--) {
+      const [n, a, b] = CH[i], on = t >= S0(a) && t < S1(b), w = n.length * 10.5 + 30; x -= w;
+      g += R(x, 48, w - 8, 34, on ? C.cyan : 'none', { rx: 17, stroke: on ? C.cyan : C.line, sw: 1.5 }) + T(x + (w - 8) / 2, 71, n, { size: 17, a: 'middle', color: on ? '#04202a' : C.muted, weight: on ? 700 : 400 });
+    }
+    s += G(op, g);
+  }
+  return s;
+}
+
+// ------------------------------------------------------------------ map helpers (sim coordinates 760 x 560)
+const MAP = { x: 230, y: 170, s: 1.32 };
+const mp = (id, m = MAP) => { const st = D.sites.find(q => q.id === id); return [m.x + st.x * m.s, m.y + st.y * m.s]; };
+function mapBase(op, m = MAP, labels = true, detail = 1) {
+  let g = '';
+  // sea on the west, a ragged coastline
+  const coast = []; for (let i = 0; i <= 24; i++) { const y = -20 + i * 25; coast.push([60 + 30 * Math.sin(i * 1.3) + 18 * Math.sin(i * 0.47), y]); }
+  const pts = coast.map(([x, y]) => [m.x + x * m.s, m.y + y * m.s]);
+  g += `<path d="M${m.x - 40 * m.s} ${m.y - 20 * m.s} ${pts.map(p => 'L' + p[0].toFixed(0) + ' ' + p[1].toFixed(0)).join(' ')} L${m.x - 40 * m.s} ${m.y + 580 * m.s} Z" fill="${C.sea}" opacity="${0.9 * op}"/>`;
+  g += T(m.x + 10 * m.s, m.y + 520 * m.s, 'Gulf of Bothnia', { size: 20, color: '#5d87ad', op: op * 0.9, style: 'italic' });
+  // roads
+  for (const p of ['P1', 'P2']) for (const d of ['D1', 'D2', 'D3', 'D4']) { const [x1, y1] = mp(p, m), [x2, y2] = mp(d, m); g += L(x1, y1, x2, y2, '#2c4260', 3 * detail, { op: op * 0.9 }); }
+  return g;
+}
+function sitesLayer(t, appear, m = MAP, big = 1, showNames = true) {
+  let g = '';
+  D.sites.forEach((s, i) => {
+    const e = EO(P(t, appear + i * 0.45, appear + i * 0.45 + 0.6)); if (e <= 0) return;
+    const [x, y] = mp(s.id, m), col = s.type === 'prod' ? C.green : C.amber;
+    g += G(e, `<circle cx="${x}" cy="${y}" r="${38 * big}" fill="${C.panel}" stroke="${col}" stroke-width="3"/>` + ICON[siteIcon[s.id]](x, y, 0.95 * big, col) + (showNames ? T(x, y + 64 * big, s.short, { size: 22 * Math.max(0.9, big), a: 'middle', color: C.text, weight: 700 }) : ''));
+  });
+  return g;
+}
+
+// ------------------------------------------------------------------ scenes
+function s1(t) { // hook
+  const op = W(t, 0, S1(0) + 0.3, 0.5); if (op <= 0) return '';
+  let g = T(960, 230, 'Where do we store the hydrogen?', { size: 64, a: 'middle', weight: 700, op: EO(P(t, 3.2, 4.2)) });
+  const icons = [['bus', 'Buses', C.amber], ['truck', 'Trucks', C.amber], ['ship', 'Ships', C.amber], ['factory', 'Industry', C.amber]];
+  icons.forEach(([ic, name, col], i) => {
+    const e = EO(P(t, 0.4 + i * 0.5, 1.2 + i * 0.5)), x = 420 + i * 360, y = 520;
+    g += G(e, `<circle cx="${x}" cy="${y}" r="92" fill="${C.panel}" stroke="${C.line}" stroke-width="2"/>` + ICON[ic](x, y, 2.2, col) + T(x, y + 140, name, { size: 30, a: 'middle', color: C.muted }), `translate(0 ${(1 - e) * 30})`);
+  });
+  const q = EO(P(t, 4.6, 5.6));
+  g += G(q, ICON.tank(960, 760, 1.6, C.cyan, 0.35) + T(1010, 745, '?', { size: 70, weight: 700, color: C.cyan }));
+  return G(op, g);
+}
+
+function s2(t) { // why storage hurts
+  const op = W(t, S0(1), S1(1), 0.5); if (op <= 0) return '';
+  const a = S0(1);
+  let g = '';
+  // left: density facts
+  const f1 = EO(P(t, a + 0.3, a + 1.2)), f2 = EO(P(t, phraseStart(1, 'Even at'), phraseStart(1, 'Even at') + 0.8)), f3 = EO(P(t, phraseStart(1, 'one kilogram'), phraseStart(1, 'one kilogram') + 0.8));
+  g += G(f1, R(120, 180, 700, 640, C.panel, { rx: 22 }) + T(160, 240, 'The lightest gas', { size: 36, weight: 700 }) + T(160, 300, '0.09 kg per m³ at normal pressure', { size: 28, color: C.muted }));
+  g += G(f2, T(160, 380, '≈ 33 kg per m³ at 500 bar', { size: 32, color: C.cyan, weight: 700 }) + T(160, 420, 'still heavy steel or carbon-fibre vessels', { size: 24, color: C.muted }));
+  g += G(f3, ICON.tank(300, 610, 3.2, C.cyan, 0.8) + T(420, 580, '1 kg', { size: 44, weight: 700, color: C.cyan }) + T(420, 630, '≈ 30 litres of tank', { size: 30 }) + T(420, 668, 'plus safety distances and permits', { size: 22, color: C.muted }));
+  // right: tanks at every site on a mini map
+  const m = { x: 980, y: 196, s: 0.9 };
+  const f4 = EO(P(t, phraseStart(1, 'So local'), phraseStart(1, 'So local') + 1));
+  g += G(f4, R(900, 180, 900, 640, '#0e1828', { rx: 22 }) + mapBase(1, m, false, 0.7) + sitesLayer(t, phraseStart(1, 'So local'), m, 0.7, false));
+  const cap = D.statA, ids = ['P1', 'P2', 'D1', 'D2', 'D3', 'D4'];
+  ids.forEach((id, i) => {
+    const e = EO(P(t, phraseStart(1, 'add storage') + i * 0.35, phraseStart(1, 'add storage') + i * 0.35 + 0.6)); if (e <= 0) return;
+    const [x, y] = mp(id, m), sc = 0.55 + cap[id] / 2200 * 0.7;
+    g += G(e, ICON.tank(x + 46, y - 20, sc, C.red, 0.7) + T(x + 46, y + 40 * sc + 8, fmt(cap[id]) + ' kg', { size: 17, a: 'middle', color: '#ffb3aa' }));
+  });
+  const f5 = EO(P(t, phraseStart(1, 'and pay'), phraseStart(1, 'and pay') + 0.8));
+  g += G(f5, R(940, 712, 820, 96, 'rgba(255,107,91,.12)', { rx: 14, stroke: 'rgba(255,107,91,.5)', sw: 1.5 }) + T(970, 754, `Storage-first design: ${fmt(D.kpi.A.statKg)} kg of stationary tanks`, { size: 27, weight: 700, color: '#ffc2ba' }) + T(970, 790, `${fmt(D.kpi.A.avgInv / 1000, 1)} t of hydrogen held on average, most of it waiting`, { size: 22, color: C.muted }));
+  return G(op, g);
+}
+
+function s3(t) { // storage is a symptom
+  const op = W(t, S0(2), S1(2), 0.5); if (op <= 0) return '';
+  const a = S0(2);
+  let g = T(960, 210, 'Storage fills the gap between supply and demand', { size: 44, a: 'middle', weight: 700, op: EO(P(t, a + 0.2, a + 1)) });
+  const x0 = 220, x1 = 1700, yb = 800, sc = 2.2, n = D.sup.length;
+  const X = i => x0 + (x1 - x0) * i / (n - 1), Y = v => yb - v * sc;
+  const k = P(t, a + 0.6, a + 5.5), m = Math.max(2, Math.floor(n * k));
+  g += L(x0, yb, x1, yb, C.line, 2);
+  for (let d = 0; d <= 5; d++) g += T(x0 + (x1 - x0) * d / 5, yb + 32, `day ${d + 2}`, { size: 20, a: 'middle', color: C.muted, op: d < 5 ? 1 : 0 });
+  // gap areas
+  let area = '';
+  for (let i = 0; i < m - 1; i++) {
+    const s0 = D.sup[i], d0 = D.dem[i], s1v = D.sup[i + 1], d1 = D.dem[i + 1];
+    const col = s0 >= d0 ? C.green : C.red;
+    area += `<path d="M${X(i)} ${Y(s0)} L${X(i + 1)} ${Y(s1v)} L${X(i + 1)} ${Y(d1)} L${X(i)} ${Y(d0)} Z" fill="${col}" opacity=".22"/>`;
+  }
+  g += area;
+  g += path(D.sup.slice(0, m).map((v, i) => [X(i), Y(v)]), C.green, 4) + path(D.dem.slice(0, m).map((v, i) => [X(i), Y(v)]), C.amber, 4);
+  g += G(EO(P(t, phraseStart(2, 'Production follows'), phraseStart(2, 'Production follows') + 0.6)), T(x0, 300, '▬ production, following the wind', { size: 26, color: C.green, weight: 700 }));
+  g += G(EO(P(t, phraseStart(2, 'Demand follows'), phraseStart(2, 'Demand follows') + 0.6)), T(x0, 338, '▬ demand: night buses, truck peaks, ships', { size: 26, color: C.amber, weight: 700 }));
+  g += G(EO(P(t, phraseStart(2, 'Tanks fill'), phraseStart(2, 'Tanks fill') + 0.6)), R(1160, 280, 560, 70, 'rgba(255,107,91,.12)', { rx: 12 }) + T(1440, 326, 'every shaded gap is storage', { size: 28, a: 'middle', color: '#ffc2ba', weight: 700 }));
+  return G(op, g);
+}
+
+function s4(t) { // the question
+  const op = W(t, S0(3), S1(3), 0.5); if (op <= 0) return '';
+  const a = S0(3);
+  let g = T(960, 250, 'THE RESEARCH QUESTION', { size: 24, a: 'middle', color: C.cyan, weight: 700, ls: 4, op: EO(P(t, a + 0.2, a + 0.9)) });
+  const e1 = EO(P(t, phraseStart(3, 'how can'), phraseStart(3, 'how can') + 0.8));
+  g += G(e1, T(960, 360, 'How can digital twins help local hydrogen systems', { size: 50, a: 'middle', weight: 700 }));
+  const w = [['produce,', C.green], ['move', C.cyan], ['and use', C.amber], ['hydrogen', C.text]];
+  const ps = phraseStart(3, 'produce');
+  g += `<text x="960" y="455" text-anchor="middle" font-family="${F}" font-size="60" font-weight="700">` + w.map(([s, c], i) => `<tspan fill="${c}" opacity="${EO(P(t, ps + i * 0.35, ps + i * 0.35 + 0.5))}">${s}${i < 3 ? ' ' : ''}</tspan>`).join('') + '</text>';
+  const e2 = EO(P(t, phraseStart(3, 'with minimum'), phraseStart(3, 'with minimum') + 0.7)), e3 = EO(P(t, phraseStart(3, 'maximum'), phraseStart(3, 'maximum') + 0.7));
+  g += G(e2, R(420, 530, 500, 120, 'rgba(58,208,240,.1)', { rx: 18, stroke: C.cyan, sw: 2 }) + T(670, 605, 'minimum storage', { size: 46, a: 'middle', weight: 700, color: C.cyan }));
+  g += G(e3, R(1000, 530, 500, 120, 'rgba(70,214,155,.1)', { rx: 18, stroke: C.green, sw: 2 }) + T(1250, 605, 'maximum business value?', { size: 42, a: 'middle', weight: 700, color: C.green }));
+  g += G(EO(P(t, a + 2, a + 3)), T(960, 760, 'from an infrastructure problem to a logistics intelligence problem', { size: 30, a: 'middle', color: C.muted, style: 'italic' }));
+  return G(op, g);
+}
+
+function trailerOnRoad(tp, h, m = MAP) { // position of a trip's trailer at hour h (fractional)
+  const [x1, y1] = mp(tp.from, m), [x2, y2] = mp(tp.to, m);
+  if (h < tp.s || h >= tp.r) return null;
+  if (h < tp.a) { const k = (h - tp.s) / Math.max(0.1, tp.a - tp.s); return { x: lerp(x1, x2, k), y: lerp(y1, y2, k), full: tp.full, out: true }; }
+  const k = (h - tp.a) / Math.max(0.1, tp.r - tp.a); return { x: lerp(x2, x1, k), y: lerp(y2, y1, k), full: false, out: false };
+}
+function s5(t) { // the system
+  const op = W(t, S0(4), S1(4), 0.5); if (op <= 0) return '';
+  const a = S0(4);
+  let g = R(160, 150, 1600, 770, '#0e1828', { rx: 24, op: EO(P(t, a, a + 0.6)) });
+  g += mapBase(EO(P(t, a + 0.2, a + 1)));
+  g += sitesLayer(t, phraseStart(4, 'Two electrolysers'));
+  // trailers moving: 72 simulated hours compressed into the scene
+  const tt = phraseStart(4, 'linked by');
+  if (t > tt) {
+    const h = (t - tt) / (S1(4) - tt) * 60 + 4;
+    for (const tp of D.trips) { const p = trailerOnRoad(tp, h); if (p) g += ICON.trailer(p.x, p.y - 20, 1.6, p.full ? C.cyan : C.steel, p.full ? Math.min(1, tp.h2 / 900) : 0.08); }
+    g += G(EO(P(t, tt, tt + 0.8)), R(1320, 190, 400, 150, C.panel, { rx: 16 }) + ICON.trailer(1370, 238, 1.3, C.cyan, 1) + T(1410, 246, '7 tube trailers', { size: 28, weight: 700 }) + T(1350, 290, '900 kg each at 500 bar', { size: 22, color: C.muted }) + T(1350, 322, 'shared by all sites', { size: 22, color: C.muted }));
+  }
+  g += G(EO(P(t, a + 0.5, a + 1.3)), T(200, 205, 'A coastal region in northern Finland (illustrative)', { size: 26, color: C.muted }));
+  return G(op, g);
+}
+
+function s6(t) { // the twin: data in, plan, decisions out
+  const op = W(t, S0(5), S1(5), 0.5); if (op <= 0) return '';
+  const a = S0(5);
+  let g = '';
+  const ins = [['Weather forecast', 'wind, temperature'], ['Spot price forecast', 'hour by hour'], ['Demand forecast', 'buses, trucks, ships, plant'], ['Every trailer', 'position, pressure, kg'], ['Every tank', 'level, space']];
+  ins.forEach(([n, s], i) => { const e = EO(P(t, a + 0.4 + i * 0.4, a + 1 + i * 0.4)); g += G(e, R(120, 200 + i * 118, 400, 96, C.panel, { rx: 14, stroke: C.line }) + T(145, 240 + i * 118, n, { size: 26, weight: 700, color: C.cyan }) + T(145, 274 + i * 118, s, { size: 20, color: C.muted }) + arrow(530, 248 + i * 118, 610, 520, C.cyan, 2, { op: 0.5 }), `translate(${(1 - e) * -30} 0)`); });
+  // centre: plan chart
+  const e2 = EO(P(t, phraseStart(5, 'Each hour'), phraseStart(5, 'Each hour') + 0.8));
+  const cx0 = 640, cx1 = 1280, cy0 = 230, cy1 = 760;
+  g += G(e2, R(620, 190, 680, 620, C.panel2, { rx: 20, stroke: C.cyan, sw: 2 }) + T(960, 240, 'Digital twin: rolling 48-hour plan', { size: 30, a: 'middle', weight: 700, color: C.cyan }));
+  if (e2 > 0) {
+    const n = D.win.price.length, X = i => cx0 + 40 + (cx1 - cx0 - 80) * i / (n - 1);
+    const maxP = Math.max(...D.win.price), Yp = v => 520 - v / maxP * 190;
+    const k = P(t, phraseStart(5, 'Each hour') + 0.3, phraseStart(5, 'when to produce') + 1.2), m = Math.max(2, Math.floor(n * k));
+    let bars = '';
+    for (let i = 0; i < m; i++) { const v = D.win.prod[i], hgt = v / 240 * 170; bars += R(X(i) - 5, 720 - hgt, 10, hgt, C.green, { op: .85 }); }
+    g += G(e2, L(cx0 + 30, 720, cx1 - 30, 720, C.line, 2) + bars + path(D.win.price.slice(0, m).map((v, i) => [X(i), Yp(v)]), C.amber, 3) + T(cx0 + 40, 300, 'spot price forecast', { size: 20, color: C.amber }) + T(cx0 + 40, 560, 'planned production: cheapest hours', { size: 20, color: C.green }) + T(cx0 + 40, 752, 'now', { size: 18, color: C.muted }) + T(cx1 - 40, 752, '+48 h', { size: 18, color: C.muted, a: 'end' }));
+  }
+  const outs = [['When to produce', C.green, 'when to produce'], ['What to move, where', C.cyan, 'what to move'], ['A small reserve on wheels', C.violet, 'where to keep']];
+  outs.forEach(([n, c, key], i) => { const s = phraseStart(5, key), e = EO(P(t, s, s + 0.6)); g += G(e, arrow(1310, 500, 1390, 300 + i * 170, c, 3, { op: 0.8 }) + R(1400, 250 + i * 170, 400, 110, C.panel, { rx: 14, stroke: c, sw: 2 }) + T(1425, 318 + i * 170, n, { size: 28, weight: 700, color: c }), `translate(${(1 - e) * 30} 0)`); });
+  g += G(EO(P(t, phraseStart(5, 'where to keep') + 0.8, phraseStart(5, 'where to keep') + 1.6)), T(1600, 800, 'decisions go back to the plant and the trucks', { size: 22, a: 'middle', color: C.muted }));
+  return G(op, g);
+}
+
+function s7(t) { // stress month: timetable vs twin
+  const op = W(t, S0(6), S1(6), 0.5); if (op <= 0) return '';
+  const a = S0(6);
+  let g = T(960, 200, 'One winter month, stress-tested', { size: 46, a: 'middle', weight: 700, op: EO(P(t, a + 0.2, a + 1)) });
+  const x0 = 360, x1 = 1780, dw = (x1 - x0) / 30, yE = 290;
+  const ev = D.events;
+  const bands = [['cold', 'Cold snap −28 °C', '#7fb3f0', 'a cold snap', 0], ['dunkel', 'Calm, dark, expensive', '#9aa9bb', 'three calm', 1], ['storm', 'Snowstorm', '#eef3f8', 'a snowstorm', 1], ['outage', 'Electrolyser trip', C.red, 'an electrolyser', 0], ['peak', 'Freight peak', C.amber, 'Now we stress', 0], ['windy', 'Windy weekend', C.green, 'Now we stress', 1]];
+  for (let d = 0; d < 30; d++) g += G(EO(P(t, a + 0.4 + d * 0.02, a + 0.8 + d * 0.02)), R(x0 + d * dw + 2, yE + 70, dw - 4, 26, C.panel, { rx: 5 }) + (d % 5 === 0 ? T(x0 + d * dw + dw / 2, yE + 128, 'day ' + (d + 1), { size: 16, a: 'middle', color: C.muted }) : ''));
+  bands.forEach(([k, name, col, key, lane]) => {
+    const e = ev[k], s = phraseStart(6, key), o = EO(P(t, s, s + 0.6)); if (o <= 0) return;
+    const d0 = e.day + (e.from ? e.from / 24 : 0), d1 = e.days ? e.day + e.days : e.hours ? d0 + e.hours / 24 : e.day + (e.to || 24) / 24;
+    g += G(o, R(x0 + d0 * dw, yE + 72, Math.max(8, (d1 - d0) * dw), 22, col, { rx: 5, op: .75 }) + T(x0 + d0 * dw, yE + 48 - lane * 26, name, { size: 18, color: col, weight: 700 }));
+  });
+  // two rows
+  const rows = [['Fixed timetable', 'same small tanks', D.dailyB, D.kpi.B, 'With the same'], ['Digital twin', 'same small tanks', D.dailyC, D.kpi.C, 'The twin supplies']];
+  rows.forEach(([name, sub, daily, k, key], r) => {
+    const s = r ? Math.min(phraseStart(6, key), S1(6) - 3.4) : phraseStart(6, key), o = EO(P(t, s - 0.2, s + 0.6)); if (o <= 0) return;
+    const y = 520 + r * 190, sweep = P(t, s, s + (r ? 2.2 : 3.2));
+    let q = R(120, y - 60, 1680, 150, C.panel, { rx: 18, stroke: r ? C.cyan : C.line, sw: 2 }) + T(150, y - 8, name, { size: 32, weight: 700, color: r ? C.cyan : C.text }) + T(150, y + 28, sub, { size: 20, color: C.muted });
+    for (let d = 0; d < 30; d++) {
+      if (d / 30 > sweep) break;
+      const u = daily[d].reduce((a2, b) => a2 + b, 0), cx = x0 + d * dw + dw / 2;
+      q += u > 1 ? `<circle cx="${cx}" cy="${y}" r="${clamp(8 + Math.sqrt(u) * 0.9, 8, 26)}" fill="${C.red}" opacity=".85"/>` : `<circle cx="${cx}" cy="${y}" r="7" fill="${C.green}" opacity=".7"/>`;
+    }
+    const done = P(t, s + (r ? 2.0 : 2.6), s + (r ? 2.6 : 3.4));
+    q += G(done, T(1780, y + 58, r ? `${(k.service * 100).toFixed(0)} % supplied · 0 hours without fuel` : `${(k.service * 100).toFixed(1)} % supplied · ${k.soH} hours without fuel`, { size: 24, a: 'end', color: r ? C.green : '#ffb3aa', weight: 700 }));
+    g += G(o, q);
+  });
+  return G(op, g);
+}
+
+function s8(t) { // results
+  const op = W(t, S0(7), S1(7), 0.5); if (op <= 0) return '';
+  const a = S0(7), A = D.kpi.A, Z = D.kpi.C;
+  let g = T(960, 200, 'Storage-first design vs digital twin, same month, same demand', { size: 40, a: 'middle', weight: 700, op: EO(P(t, a + 0.2, a + 1)) });
+  const items = [
+    ['Stationary storage', A.statKg, Z.statKg, v => fmt(v) + ' kg', `−${Math.round((1 - Z.statKg / A.statKg) * 100)} %`, 'ninety-two'],
+    ['Hydrogen held, average', A.avgInv, Z.avgInv, v => fmt(v / 1000, 1) + ' t', `−${Math.round((1 - Z.avgInv / A.avgInv) * 100)} %`, 'two thirds'],
+    ['Cost per kg delivered', A.costKg, Z.costKg, v => '€' + fmt(v, 2), `−${Math.round((1 - Z.costKg / A.costKg) * 100)} %`, 'and earns'],
+    ['Operating margin per month', A.margin, Z.margin, v => '€' + fmt(v / 1000) + 'k', `+€${fmt((Z.margin - A.margin) / 1000)}k`, 'earns about']
+  ];
+  items.forEach(([name, va, vz, f, delta, key], i) => {
+    const s = phraseStart(7, key), e = EO(P(t, s - 0.3, s + 0.6)), y = 262 + i * 136; if (e <= 0) return;
+    const mx = Math.max(va, vz), wA = 620 * va / mx * e, wZ = 620 * vz / mx * e;
+    g += G(e, T(150, y + 40, name, { size: 28, weight: 700 }) +
+      R(620, y, wA, 36, C.red, { rx: 6, op: .75 }) + T(630 + wA, y + 28, f(va), { size: 22, color: '#ffc2ba' }) +
+      R(620, y + 46, wZ, 36, C.cyan, { rx: 6, op: .9 }) + T(630 + wZ, y + 74, f(vz), { size: 22, color: C.cyan, weight: 700 }) +
+      T(1780, y + 56, delta, { size: 46, a: 'end', weight: 700, color: C.green }));
+  });
+  g += G(EO(P(t, a + 0.8, a + 1.6)), R(150, 812, 18, 14, C.red, { op: .75 }) + T(176, 825, 'storage-first', { size: 20, color: C.muted }) + R(330, 812, 18, 14, C.cyan) + T(356, 825, 'digital twin', { size: 20, color: C.muted }) + T(1780, 825, 'Illustrative model, one simulated winter month. Assumptions on the live page.', { size: 19, a: 'end', color: C.muted }));
+  return G(op, g);
+}
+
+function s9(t) { // close
+  const op = P(t, S0(8), S0(8) + 0.8) * (1 - P(t, DUR - 0.5, DUR)); if (op <= 0) return '';
+  const a = S0(8);
+  let g = '';
+  const e1 = EO(P(t, a + 0.3, a + 1.2)), e2 = EO(P(t, phraseStart(8, 'It is'), phraseStart(8, 'It is') + 0.8));
+  g += G(e1, T(960, 330, 'Not only a tank problem.', { size: 60, a: 'middle', weight: 700, color: '#ffc2ba' }));
+  g += G(e2, T(960, 430, 'A logistics intelligence problem.', { size: 64, a: 'middle', weight: 700, color: C.cyan }));
+  const m = { x: 760, y: 480, s: 0.55 };
+  g += G(e2 * 0.9, mapBase(1, m, false, 0.5) + sitesLayer(t, a, m, 0.45, false));
+  const e3 = EO(P(t, phraseStart(8, 'Explore'), phraseStart(8, 'Explore') + 0.8));
+  g += G(e3, T(960, 850, 'rajan56.github.io/storage-minimised-hydrogen-twin', { size: 36, a: 'middle', weight: 700, color: '#7fb3f0' }) + T(960, 895, 'Rajan Kumar V K · D.Sc. Industrial Engineering and Management', { size: 24, a: 'middle', color: C.muted }));
+  return G(op, g);
+}
+
+function render(t) {
+  const fade = P(t, 0, 0.4) * (1 - P(t, DUR - 0.4, DUR));
+  document.getElementById('s').innerHTML = R(0, 0, 1920, 1080, C.bg) +
+    `<radialGradient id="rg" cx="50%" cy="42%" r="70%"><stop offset="0" stop-color="#14233a"/><stop offset="1" stop-color="${C.bg}"/></radialGradient>` + R(0, 0, 1920, 1080, 'url(#rg)') +
+    G(fade, s1(t) + s2(t) + s3(t) + s4(t) + s5(t) + s6(t) + s7(t) + s8(t) + s9(t) + chrome(t));
+}
+window.render = render;
+const q = new URLSearchParams(location.search);
+if (q.has('t')) render(parseFloat(q.get('t')));
+else if (!q.has('static')) { const t0 = performance.now(); (function loop() { render(((performance.now() - t0) / 1000) % DUR); requestAnimationFrame(loop); })(); }
+</script></body></html>
