@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Storage-Minimised Hydrogen Twin</title>
+<meta name="description" content="A live digital twin of a local hydrogen system in a northern Finland style region. It shows how logistics intelligence, rather than more tanks, lets hydrogen be produced, moved and used with minimum storage and maximum business value.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav" aria-label="Sections">
+  <div class="wrap">
+    <a class="brand" href="#top">Storage-Minimised H₂ Twin</a>
+    <ul>
+      <li><a class="l" href="#problem">The problem</a></li>
+      <li><a class="l" href="#reframe">Reframing</a></li>
+      <li><a class="l" href="#case">The case</a></li>
+      <li><a class="l" href="#architecture">The twin</a></li>
+      <li><a class="l" href="#live">Live twin</a></li>
+      <li><a class="l" href="#events">Stress events</a></li>
+      <li><a class="l" href="#frontier">Minimum storage</a></li>
+      <li><a class="l" href="#value">Business value</a></li>
+      <li><a class="l" href="#method">Method</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="kicker">Digital twin case · Nordic local hydrogen</div>
+    <h1>From Storage to Logistics Intelligence</h1>
+    <p class="lead">Hydrogen storage is usually treated as a tank problem. This project treats it as a coordination problem across a local ecosystem, and uses a digital twin of production, trailers and users to show how much storage coordination can replace.</p>
+    <div class="rq"><b>Research question</b>How can digital twins help local hydrogen systems produce, move and use hydrogen with minimum storage and maximum business value?</div>
+
+    <div class="video-card">
+      <video id="vid" controls preload="metadata" playsinline poster="media/poster.jpg">
+        <source src="media/storage_minimised_hydrogen_twin.mp4" type="video/mp4">
+        <track kind="captions" src="media/captions.vtt" srclang="en" label="English">
+      </video>
+      <div class="chapters" id="chapters">
+        <span>Jump to:</span>
+        <button data-t="0">The problem</button>
+        <button data-t="23.3">Reframing</button>
+        <button data-t="44.9">The system</button>
+        <button data-t="56.3">The twin</button>
+        <button data-t="69.7">Stress test</button>
+        <button data-t="87.1">Results</button>
+      </div>
+    </div>
+    <p class="small muted" style="margin-top:10px">Narrated in British English, with captions burned in. Every number in the video comes from the simulation that runs live further down this page.</p>
+    <div class="headline" id="headline">
+      <div class="hl"><b id="h1">−92 %</b><span>stationary storage compared with a storage-first design</span></div>
+      <div class="hl"><b id="h2">−66 %</b><span>hydrogen held in the system on average</span></div>
+      <div class="hl"><b id="h3">100 %</b><span>of demand supplied through a stressed winter month</span></div>
+      <div class="hl"><b id="h4">+€72k</b><span>operating margin per month in this illustrative case</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- 1 -->
+<section id="problem">
+  <div class="wrap">
+    <div class="kicker">1 · The problem</div>
+    <h2>Why "where do we store it?" is the wrong first question</h2>
+    <p>Hydrogen is hard to keep. It is the lightest gas, so even compressed to 500 bar a kilogram needs roughly thirty litres of pressure vessel, and liquefaction costs a large share of the energy it carries (IEA, 2019). Local hydrogen systems in the Nordics therefore tend to answer every uncertainty with another tank. The difficulty is that most of that uncertainty is not physical. It sits between organisations.</p>
+    <div class="grid3">
+      <div class="card"><h3 class="cyan">Physical level</h3><p>Low volumetric density, high pressure, safety distances and permits make every kilogram of stationary storage expensive to build and slow to approve (Papadias &amp; Ahluwalia, 2021). Cold climates add their own problems, from fuel-cell cold starts to efficiency losses (Luo &amp; Jiao, 2018).</p></div>
+      <div class="card"><h3 class="amber">Ecosystem level</h3><p>Producers, hauliers and users each size buffers for their own risk. Nobody sees the whole chain: wind and price forecasts sit with the producer, demand plans with the bus operator or the port, truck positions with the haulier. Each tank protects one actor against the others' uncertainty.</p></div>
+      <div class="card"><h3 class="green">Strategic level</h3><p>Early markets have a chicken-and-egg problem: users wait for secure supply, suppliers wait for demand. Storage becomes the price of that mistrust. Supply chain research calls for planning across production, storage, distribution and use as one system (Sgarbossa et al., 2023).</p></div>
+    </div>
+    <p class="quote">In logistics, a store is what you build when supply and demand cannot be synchronised. The question is not only how to build cheaper tanks, but how to need fewer of them.</p>
+    <div class="grid2">
+      <div class="card">
+        <h3>What the literature already shows</h3>
+        <ul>
+          <li>Storage and delivery can dominate the cost of supplied hydrogen, and the cheapest delivery mode depends on distance and volume (Yang &amp; Ogden, 2007; Reuss et al., 2017).</li>
+          <li>Trucks used as mobile storage give production extra flexibility in time and space and make electrolysis more competitive (He et al., 2021).</li>
+          <li>Inventory routing can absorb intermittent green hydrogen supply through scheduling rather than capacity (Hastürk et al., 2024; Coelho et al., 2014).</li>
+          <li>There is a real trade-off: small on-site systems are more efficient, large chains gain from storing cheap power (Stöckl et al., 2021).</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>What is still missing</h3>
+        <ul>
+          <li>Digital twins in hydrogen are mostly built for single assets: an electrolyser, a fuel cell, a station. Twins of the <i>flow</i> between sites are rare.</li>
+          <li>Storage avoidance is seldom a stated design objective, and the trade-off between forecast quality and storage capacity is rarely priced.</li>
+          <li>Nordic winter conditions, and the managerial side of sharing data between actors, are thinly studied.</li>
+        </ul>
+        <p class="small muted" style="margin-top:10px">These gaps come from an ongoing systematic literature review by the author on digital twins as logistics intelligence in the hydrogen value chain.</p>
+      </div>
+    </div>
+    <div class="note" style="margin-top:18px"><b>Nordic context.</b> Finland's national hydrogen roadmap (Laurikko et al., 2020) and the planned Nordic Hydrogen Route around the Bay of Bothnia (Gasgrid Finland, n.d.) point to large-scale hydrogen. Many early users, however, will be local: bus depots, truck stations on the TEN-T corridors, where the EU requires refuelling stations every 200 km by 2030 (Regulation (EU) 2023/1804), industrial sites and ports. These local systems are where storage decisions are made first.</div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section id="reframe">
+  <div class="wrap">
+    <div class="kicker">2 · Reframing</div>
+    <h2>From an infrastructure problem to a logistics intelligence problem</h2>
+    <p>Switch between the two views. The physical system is identical; what changes is the question the system is designed to answer.</p>
+    <div class="seg" id="reSeg"><button data-k="infra" class="on">Infrastructure view</button><button data-k="logi">Logistics intelligence view</button></div>
+    <div class="tablebox compare" style="margin-top:16px"><table id="reTable"></table></div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section id="case">
+  <div class="wrap">
+    <div class="kicker">3 · The case</div>
+    <h2>A local hydrogen system on a northern Finnish coast</h2>
+    <p>A stylised region modelled on Northern Ostrobothnia conditions: wind on the coast, long winters, a city, an industrial park, a port and a main road corridor. All numbers are illustrative and set out in the <a href="#method">method section</a>. Click a site.</p>
+    <div class="mapwrap">
+      <div class="mapbox"><svg id="caseMap" viewBox="0 0 800 600" role="img" aria-label="Map of the case region"></svg></div>
+      <div class="card" id="siteCard"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section id="architecture">
+  <div class="wrap">
+    <div class="kicker">4 · The digital twin</div>
+    <h2>What the twin sees, decides and sends back</h2>
+    <p>The twin is not a 3D model of a tank. It is a model of the whole flow of hydrogen, kept in step with live data and used to make decisions every hour. Click a layer.</p>
+    <div class="arch" id="arch"></div>
+    <div class="card" id="archDetail" style="margin-top:12px"></div>
+    <h3 style="margin-top:30px">Four ways to run the same hardware</h3>
+    <p>The simulation compares four operating strategies. The last three use exactly the same small tanks and the same seven trailers; they differ only in how much they know and how far they look ahead. This follows the model, shadow and twin distinction of Kritzinger et al. (2018).</p>
+    <div class="ladder">
+      <div class="rung"><span class="tag" style="background:rgba(255,107,91,.16);color:var(--red)">Storage-first</span><b>Buffer everything</b><small>Three days of tanks at every user, two tonnes at each electrolyser. Produce when power is cheaper than last week's average. Reorder when a tank is half empty.</small></div>
+      <div class="rung"><span class="tag" style="background:rgba(147,162,180,.18);color:var(--steel)">Digital model</span><b>Fixed timetable</b><small>Small tanks. Steady production and a weekly delivery timetable planned from average demand. A site that runs dry phones in.</small></div>
+      <div class="rung"><span class="tag" style="background:rgba(255,184,77,.16);color:var(--amber)">Digital shadow</span><b>Monitoring only</b><small>Small tanks. Live tank levels trigger deliveries at a reorder point, but nobody looks ahead at weather, prices or events.</small></div>
+      <div class="rung"><span class="tag" style="background:rgba(58,208,240,.16);color:var(--cyan)">Digital twin</span><b>Plan, act, re-plan</b><small>Small tanks. A rolling 48-hour plan from forecasts: deliveries timed to when each site will need them, production scheduled backwards from those deliveries into the cheapest hours, a reserve kept on wheels.</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section id="live">
+  <div class="wrap">
+    <div class="kicker">5 · Live twin</div>
+    <h2>Run the month yourself</h2>
+    <p>The whole model runs in your browser, hour by hour, for one winter month. Choose a strategy to watch on the map, switch stress events on or off, and compare all four strategies in the table below. Change anything and every strategy is re-run.</p>
+    <div class="twin">
+      <div class="controls">
+        <div class="ctl"><div class="lab">Watch strategy</div><div class="strats" id="strats"></div></div>
+        <div class="ctl"><div class="lab">Stress events</div><div class="evs" id="evs"></div></div>
+        <div class="ctl"><label>Trailer fleet <b id="vFleet"></b></label><input id="fleet" type="range" min="5" max="10" step="1" value="7"></div>
+        <div class="ctl"><label>Forecast error <b id="vFe"></b></label><input id="fe" type="range" min="0" max="2" step="0.25" value="0.5"></div>
+        <div class="ctl"><label>Weather year</label><select id="seed"><option value="7">Winter A</option><option value="1">Winter B</option><option value="2">Winter C</option><option value="3">Winter D</option><option value="4">Winter E</option></select></div>
+        <div class="btns"><button class="btn primary" id="play">Pause</button><select id="speed" style="width:auto"><option value="3">3 h/s</option><option value="8" selected>8 h/s</option><option value="24">1 day/s</option></select></div>
+        <p class="busy" id="busy"></p>
+      </div>
+      <div class="stage">
+        <div class="panel">
+          <canvas id="map" height="430"></canvas>
+          <div class="timebar"><span class="clock" id="clock">Day 1 00:00</span><input id="scrub" type="range" min="0" max="719" step="1" value="0"></div>
+          <div class="banner" id="banner"></div>
+        </div>
+        <div class="panel"><canvas id="chartA" height="200"></canvas></div>
+        <div class="panel"><canvas id="chartB" height="220"></canvas></div>
+      </div>
+    </div>
+    <div class="tablebox kpis" style="margin-top:16px"><table id="kpiTable"></table></div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="card"><h3>Dispatch log <span class="muted small" id="logWho"></span></h3><div class="log" id="log"></div></div>
+      <div class="card"><h3>How to read the result</h3><p class="small">Service level is the share of hydrogen demand supplied on time. "Hours without fuel" counts hours in which any user could not be served. Hydrogen held is the average amount in tanks and trailers. Cost per kg covers electricity, compression, trucking, the annualised cost of stationary tanks and the change in stock. Margin adds sales and subtracts penalties for unmet demand. Electrolysers and trailers are the same in every strategy, so their capital cost is left out of the comparison.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section id="events">
+  <div class="wrap">
+    <div class="kicker">6 · Stress events</div>
+    <h2>What the twin does when things go wrong</h2>
+    <p>Each event is switched on in the default month. Click "watch" to jump the live twin to that day.</p>
+    <div class="evcards" id="evcards"></div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section id="frontier">
+  <div class="wrap">
+    <div class="kicker">7 · Minimum storage</div>
+    <h2>How much hydrogen must sit still to keep everyone supplied?</h2>
+    <p>This is the heart of the research question. The chart sweeps the storage-first design over tank sizes, and the twin over the size of its reserve on wheels, and plots service level against the hydrogen held on average. The further left a curve reaches 100 %, the less storage the system needs.</p>
+    <div class="grid2">
+      <div class="panel"><canvas id="frontChart" height="330"></canvas></div>
+      <div class="card">
+        <h3>Result</h3>
+        <div id="frontText" class="small"><p class="muted">Press "Compute" to run the sweep (about 20 simulations, a few seconds).</p></div>
+        <div class="btns"><button class="btn primary" id="frontGo">Compute</button></div>
+        <h3 style="margin-top:22px">Sensitivity</h3>
+        <div id="sensText" class="small"><p class="muted">Fleet size and forecast quality: press "Compute" to run.</p></div>
+        <div class="btns"><button class="btn" id="sensGo">Compute sensitivity</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section id="value">
+  <div class="wrap">
+    <div class="kicker">8 · Business value</div>
+    <h2>Where the value comes from, and who captures it</h2>
+    <div class="grid3">
+      <div class="card"><h3 class="green">Less idle capital</h3><p>Tanks that are no longer needed are capital, land and permits that are not spent. In the default month the storage-first design ties up more than ten times the stationary capacity of the twin.</p></div>
+      <div class="card"><h3 class="cyan">Cheaper electricity</h3><p>A plan that knows when deliveries are due can put production into cheap, windy hours without building a tank to hold the result. The reserve lives in trailers that have to exist anyway.</p></div>
+      <div class="card"><h3 class="amber">Reliability as a service</h3><p>Users pay for a promise of supply. The twin keeps that promise through cold snaps, calm spells, storms and trips, which is what makes long-term contracts, and therefore investment, possible.</p></div>
+    </div>
+    <h3 style="margin-top:28px">The ecosystem around the twin</h3>
+    <div class="tablebox"><table>
+      <thead><tr><th>Actor</th><th>Gives to the twin</th><th>Gets from the twin</th></tr></thead>
+      <tbody>
+        <tr><td>Electrolyser operators</td><td>Availability, efficiency, power contracts</td><td>Production schedule tied to real deliveries; fewer idle tanks</td></tr>
+        <tr><td>Haulier</td><td>Truck and trailer positions, pressures, driver hours</td><td>Timed routes, fewer emergency trips, trailers used as paid storage</td></tr>
+        <tr><td>Bus, truck, industrial and port users</td><td>Timetables, planned stoppages, bunkering slots</td><td>Guaranteed supply with less on-site storage and fewer permits</td></tr>
+        <tr><td>Grid and market</td><td>Price and weather forecasts</td><td>Flexible demand that follows wind and price</td></tr>
+        <tr><td>Region and investors</td><td>Rules, permits, funding</td><td>A system that can be copied to the next town with its data model</td></tr>
+      </tbody>
+    </table></div>
+    <h3 style="margin-top:28px">Performance measures for a storage-minimised system</h3>
+    <p>If storage is a logistics outcome, it needs logistics measures. These are the indicators the twin reports every hour, and the ones a performance management system for such an ecosystem would track.</p>
+    <div class="grid2">
+      <div class="card"><ul>
+        <li><b>Storage intensity</b>: kg of stationary storage per kg of daily demand.</li>
+        <li><b>Hydrogen days of cover</b>: hydrogen held divided by forecast demand.</li>
+        <li><b>Service level and hours without fuel</b>, per user.</li>
+      </ul></div>
+      <div class="card"><ul>
+        <li><b>Delivered cost per kg</b>, split into power, compression, trucking and storage.</li>
+        <li><b>Share of production in cheap hours</b> and the average power price paid.</li>
+        <li><b>Trailer utilisation</b> and kilometres per kg delivered.</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 -->
+<section id="method">
+  <div class="wrap">
+    <div class="kicker">9 · Method and assumptions</div>
+    <h2>How the model works, and what it does not claim</h2>
+    <div class="grid2" style="grid-template-columns:1fr">
+      <div class="card">
+        <h3>Model</h3>
+        <p class="small">Hourly discrete-time simulation over 720 hours. Synthetic weather (wind capacity factor and temperature as mean-reverting processes), spot prices driven by wind, time of day and cold, and six stress events. Two electrolysers fill tube trailers; seven trailers and three tractors run drop-and-swap trips; four users draw hydrogen from the docked trailer and a small on-site tank. The twin sees forecasts whose error grows with lead time (the forecast error slider scales it), sees the road storm 12 hours ahead, and does not foresee the electrolyser trip. The code is in <code>sim.js</code> and runs identically in the browser and in Node.</p>
+        <h3 style="margin-top:14px">Limitations</h3>
+        <ul class="small">
+          <li>Illustrative data, not a real site. Prices, costs and demand are plausible, not measured.</li>
+          <li>The twin uses transparent rules (backward scheduling, greedy cheapest-hour allocation), not a full mathematical optimisation, so its results are a lower bound on what a twin can do.</li>
+          <li>One region, one month. Seasonal storage, pipelines and liquid carriers are outside the scope.</li>
+          <li>Trailer capacity is itself storage. The claim is not that storage disappears, but that shared, mobile capacity replaces dedicated tanks.</li>
+        </ul>
+      </div>
+      <div class="tablebox params"><table>
+        <thead><tr><th>Parameter</th><th>Value</th><th>Basis</th></tr></thead>
+        <tbody>
+          <tr><td>Electrolysers</td><td>8 MW + 5 MW</td><td>Assumption</td></tr>
+          <tr><td>System consumption</td><td>55 kWh/kg, +0.3 % per °C below 0</td><td>Typical PEM range (IEA, 2019); cold penalty assumed</td></tr>
+          <tr><td>Compression to 500 bar</td><td>2.5 kWh/kg</td><td>Assumption</td></tr>
+          <tr><td>Tube trailer</td><td>900 kg, 50 kg heel</td><td>Type IV range 560 to 900 kg (U.S. DOE, n.d.)</td></tr>
+          <tr><td>Fleet</td><td>7 trailers, 3 tractors, 65 km/h</td><td>Assumption</td></tr>
+          <tr><td>Demand</td><td>≈ 2.1 t/day: 30 buses, truck station, plant, port 2 × 1.1 t/week</td><td>Assumption</td></tr>
+          <tr><td>Power</td><td>Spot market + €8–12/MWh fees; 20 MW wind PPA at €28/MWh for the coastal plant</td><td>Assumption</td></tr>
+          <tr><td>Stationary storage</td><td>€1,000/kg installed, 10 % a year</td><td>Assumption; see Papadias &amp; Ahluwalia (2021) for storage options</td></tr>
+          <tr><td>Sale price, penalty</td><td>€12/kg; €10/kg for unmet demand</td><td>Assumption</td></tr>
+          <tr><td>Trucking</td><td>€2.4/km + €35 per stop</td><td>Assumption</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 -->
+<section id="refs">
+  <div class="wrap">
+    <div class="kicker">10 · References</div>
+    <h2>Sources</h2>
+    <div class="refs">
+      <p>Coelho, L. C., Cordeau, J.-F., &amp; Laporte, G. (2014). Thirty years of inventory routing. <i>Transportation Science, 48</i>(1), 1–19. <a href="https://doi.org/10.1287/trsc.2013.0472">https://doi.org/10.1287/trsc.2013.0472</a></p>
+      <p>European Parliament and Council of the European Union. (2023). Regulation (EU) 2023/1804 on the deployment of alternative fuels infrastructure. <i>Official Journal of the European Union, L 234</i>. <a href="https://eur-lex.europa.eu/eli/reg/2023/1804/oj/eng">https://eur-lex.europa.eu/eli/reg/2023/1804/oj/eng</a></p>
+      <p>Gasgrid Finland. (n.d.). <i>Nordic Hydrogen Route</i>. Retrieved September 24, 2026, from <a href="https://gasgrid.fi/en/hydrogen-development/nordic-hydrogen-route/">https://gasgrid.fi/en/hydrogen-development/nordic-hydrogen-route/</a></p>
+      <p>Grieves, M., &amp; Vickers, J. (2017). Digital twin: Mitigating unpredictable, undesirable emergent behavior in complex systems. In F.-J. Kahlen, S. Flumerfelt, &amp; A. Alves (Eds.), <i>Transdisciplinary perspectives on complex systems</i> (pp. 85–113). Springer. <a href="https://doi.org/10.1007/978-3-319-38756-7_4">https://doi.org/10.1007/978-3-319-38756-7_4</a></p>
+      <p>Hastürk, U., Schrotenboer, A. H., Ursavas, E., &amp; Roodbergen, K. J. (2024). Stochastic cyclic inventory routing with supply uncertainty: A case in green-hydrogen logistics. <i>Transportation Science, 58</i>(2), 315–339. <a href="https://doi.org/10.1287/trsc.2022.0435">https://doi.org/10.1287/trsc.2022.0435</a></p>
+      <p>He, G., Mallapragada, D. S., Bose, A., Heuberger, C. F., &amp; Gençer, E. (2021). Hydrogen supply chain planning with flexible transmission and storage scheduling. <i>IEEE Transactions on Sustainable Energy, 12</i>(3), 1730–1740. <a href="https://doi.org/10.1109/TSTE.2021.3064015">https://doi.org/10.1109/TSTE.2021.3064015</a></p>
+      <p>International Energy Agency. (2019). <i>The future of hydrogen</i>. IEA. <a href="https://www.iea.org/reports/the-future-of-hydrogen">https://www.iea.org/reports/the-future-of-hydrogen</a></p>
+      <p>International Energy Agency. (2024). <i>Global hydrogen review 2024</i>. IEA. <a href="https://www.iea.org/reports/global-hydrogen-review-2024">https://www.iea.org/reports/global-hydrogen-review-2024</a></p>
+      <p>Kritzinger, W., Karner, M., Traar, G., Henjes, J., &amp; Sihn, W. (2018). Digital twin in manufacturing: A categorical literature review and classification. <i>IFAC-PapersOnLine, 51</i>(11), 1016–1022. <a href="https://doi.org/10.1016/j.ifacol.2018.08.474">https://doi.org/10.1016/j.ifacol.2018.08.474</a></p>
+      <p>Laurikko, J., Ihonen, J., Kiviaho, J., Himanen, O., Weiss, R., Saarinen, V., Kärki, J., &amp; Hurskainen, M. (2020). <i>National hydrogen roadmap for Finland</i>. Business Finland. <a href="https://www.businessfinland.fi/4abb35/globalassets/finnish-customers/02-build-your-network/bioeconomy--cleantech/alykas-energia/bf_national_hydrogen_roadmap_2020.pdf">https://www.businessfinland.fi/4abb35/globalassets/finnish-customers/02-build-your-network/bioeconomy--cleantech/alykas-energia/bf_national_hydrogen_roadmap_2020.pdf</a></p>
+      <p>Luo, Y., &amp; Jiao, K. (2018). Cold start of proton exchange membrane fuel cell. <i>Progress in Energy and Combustion Science, 64</i>, 29–61. <a href="https://doi.org/10.1016/j.pecs.2017.10.003">https://doi.org/10.1016/j.pecs.2017.10.003</a></p>
+      <p>Papadias, D. D., &amp; Ahluwalia, R. K. (2021). Bulk storage of hydrogen. <i>International Journal of Hydrogen Energy, 46</i>(70), 34527–34541. <a href="https://doi.org/10.1016/j.ijhydene.2021.08.028">https://doi.org/10.1016/j.ijhydene.2021.08.028</a></p>
+      <p>Reuß, M., Grube, T., Robinius, M., Preuster, P., Wasserscheid, P., &amp; Stolten, D. (2017). Seasonal storage and alternative carriers: A flexible hydrogen supply chain model. <i>Applied Energy, 200</i>, 290–302. <a href="https://doi.org/10.1016/j.apenergy.2017.05.050">https://doi.org/10.1016/j.apenergy.2017.05.050</a></p>
+      <p>Sgarbossa, F., Arena, S., Tang, O., &amp; Peron, M. (2023). Renewable hydrogen supply chains: A planning matrix and an agenda for future research. <i>International Journal of Production Economics, 255</i>, Article 108674. <a href="https://doi.org/10.1016/j.ijpe.2022.108674">https://doi.org/10.1016/j.ijpe.2022.108674</a></p>
+      <p>Stöckl, F., Schill, W.-P., &amp; Zerrahn, A. (2021). Optimal supply chains and power sector benefits of green hydrogen. <i>Scientific Reports, 11</i>, Article 14191. <a href="https://doi.org/10.1038/s41598-021-92511-6">https://doi.org/10.1038/s41598-021-92511-6</a></p>
+      <p>U.S. Department of Energy. (n.d.). <i>Hydrogen tube trailers</i>. Retrieved September 24, 2026, from <a href="https://www.energy.gov/eere/fuelcells/hydrogen-tube-trailers">https://www.energy.gov/eere/fuelcells/hydrogen-tube-trailers</a></p>
+      <p>Yang, C., &amp; Ogden, J. (2007). Determining the lowest-cost hydrogen delivery mode. <i>International Journal of Hydrogen Energy, 32</i>(2), 268–286. <a href="https://doi.org/10.1016/j.ijhydene.2006.05.009">https://doi.org/10.1016/j.ijhydene.2006.05.009</a></p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><b style="color:var(--text)">Rajan Kumar V K</b>, D.Sc. (Tech.) in Industrial Engineering and Management, LUT University. Research on performance management with digital twins, AI and IoT, and on digital twins as logistics intelligence in the hydrogen value chain. <a href="https://www.linkedin.com/in/rajan-kumar-v-k-0a541799/">LinkedIn</a></p>
+    <p class="small">Illustrative model for research and teaching. The simulation, video and page source are in the <a href="https://github.com/Rajan56/storage-minimised-hydrogen-twin">GitHub repository</a>.</p>
+  </div>
+</footer>
+
+<script src="sim.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
